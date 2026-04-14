@@ -26,7 +26,6 @@ jobs:
           New-Item -ItemType Directory -Path C:\9Hits -Force | Out-Null
           New-Item -ItemType Directory -Path C:\9Hits\logs -Force | Out-Null
 
-      # 📦 КЭШ
       - name: Cache ZIPs
         uses: actions/cache@v4
         with:
@@ -37,7 +36,6 @@ jobs:
           restore-keys: |
             zips-static-
 
-      # ⬇️ скачивание только при отсутствии
       - name: Download hits.zip if not cached
         shell: powershell
         run: |
@@ -87,8 +85,14 @@ jobs:
 
           Remove-Item $tmp -Recurse -Force
 
-          # пауза после восстановления
           Start-Sleep -Seconds 10
+
+      - name: Show runner IP
+        shell: powershell
+        run: |
+          $ip = (Invoke-RestMethod "https://api.ipify.org")
+          Write-Host "Runner IP: $ip"
+          Set-Content C:\9Hits\runner_ip.txt $ip
 
       - name: Run with health check + graceful stop
         shell: powershell
@@ -103,7 +107,6 @@ jobs:
           $exePath = $exe.FullName
           $proc = $null
 
-          # ⏱ 4 часа
           $end = (Get-Date).AddHours(4)
 
           function Start-App {
@@ -159,7 +162,6 @@ jobs:
             Start-Sleep -Seconds 5
           }
 
-      # 📊 СТАТИСТИКА
       - name: Resource usage summary
         if: always()
         shell: powershell
